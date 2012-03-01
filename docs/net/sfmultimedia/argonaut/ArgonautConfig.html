@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><!-- saved from url=(0014)about:internet --><html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" href="../../../style.css" type="text/css" media="screen"><link rel="stylesheet" href="../../../print.css" type="text/css" media="print"><link rel="stylesheet" href="../../../override.css" type="text/css"><meta name="keywords" content="ArgonautConfig,net.sfmultimedia.argonaut.ArgonautConfig,DECODE_ERROR_ERROR,DECODE_ERROR_IGNORE,DECODE_ERROR_TRACE,aliasId,decodeErrorHandleMode,elementNormalizedType,elementType,nativeEncodeMode,normalizedType,tagClassesWhenEncoding,type"><title>net.sfmultimedia.argonaut.ArgonautConfig</title></head><body><script language="javascript" type="text/javascript" src="../../../asdoc.js"></script><script language="javascript" type="text/javascript" src="../../../help.js"></script><script language="javascript" type="text/javascript" src="../../../cookies.js"></script><script language="javascript" type="text/javascript"><!--
+				asdocTitle = 'ArgonautConfig - Argonaut API';
+				var baseRef = '../../../';
+				window.onload = configPage;
+			--></script>
+<script type="text/javascript">
+			scrollToNameAnchor();
+		</script><table class="titleTable" cellpadding="0" cellspacing="0" id="titleTable" style="display:none"><tr><td class="titleTableTitle" align="left">Argonaut API</td><td class="titleTableTopNav" align="right"><a href="../../../package-summary.html" onclick="loadClassListFrame('../../../all-classes.html')">All Packages</a>&nbsp;|&nbsp;<a href="../../../class-summary.html" onclick="loadClassListFrame('../../../all-classes.html')">All Classes</a>&nbsp;|&nbsp;<a href="../../../all-index-A.html" onclick="loadClassListFrame('../../../index-list.html')">Index</a>&nbsp;|&nbsp;<a id="framesLink1" href="../../../index.html?net/sfmultimedia/argonaut/ArgonautConfig.html&amp;net/sfmultimedia/argonaut/class-list.html">Frames</a><a id="noFramesLink1" style="display:none" href="" onclick="parent.location=document.location"> No Frames </a></td><td class="titleTableLogo" align="right" rowspan="3"><img src="../../../images/logo.jpg" class="logoImage" alt=" Adobe Logo " title=" Adobe Logo "></td></tr><tr class="titleTableRow2"><td class="titleTableSubTitle" id="subTitle" align="left">ArgonautConfig</td><td class="titleTableSubNav" id="subNav" align="right"><a href="#propertySummary">Properties</a></td></tr><tr class="titleTableRow3"><td colspan="3">&nbsp;</td></tr></table><script language="javascript" type="text/javascript" xml:space="preserve">
+				<!--
+				
+					if (!isEclipse() || window.name != ECLIPSE_FRAME_NAME) {titleBar_setSubTitle("ArgonautConfig"); titleBar_setSubNav(false,true,false,false,false,false,false,false,false,false,false	,false,false,false,false,false);}	
+				-->
+			</script><div xmlns:fn="http://www.w3.org/2005/xpath-functions" class="MainContent"><table class="classHeaderTable" cellpadding="0" cellspacing="0"><tr><td class="classHeaderTableLabel">Package</td><td><a href="package-detail.html" onclick="javascript:loadClassListFrame('class-list.html')">net.sfmultimedia.argonaut</a></td></tr><tr><td class="classHeaderTableLabel">Class</td><td class="classSignature">public  class  ArgonautConfig</td></tr><tr><td class="classHeaderTableLabel">Inheritance</td><td class="inheritanceList">ArgonautConfig  <img src="../../../images/inherit-arrow.gif" title="Inheritance" alt="Inheritance" class="inheritArrow"> Object</td></tr></table><p></p><p></p><p></p>
+	              <p>These values can be overridden to change Argonaut behavior</p>
+	  	        <p></p><br/><hr></div><a name="propertySummary"></a><div class="summarySection"><div class="summaryTableTitle">Public Properties</div><table cellspacing="0" cellpadding="3" class="summaryTable " id="summaryTableProperty"><tr><th>&nbsp;</th><th colspan="2">Property</th><th class="summaryTableOwnerCol">Defined By</th></tr><tr class=""><td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a href="#aliasId" class="signatureLink">aliasId</a> : String = __jsonclass__<div class="summaryTableDescription">
+		 The property to use to identify the remote class identifier.</div></td><td class="summaryTableOwnerCol">ArgonautConfig</td></tr><tr class=""><td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a href="#decodeErrorHandleMode" class="signatureLink">decodeErrorHandleMode</a> : String = DECODE_ERROR_TRACE<div class="summaryTableDescription">
+		 How should Argonaut behave when it runs into errors while decoding?
+		 
+		 By default, we simply catch and trace the errors (equivalent to AMF).</div></td><td class="summaryTableOwnerCol">ArgonautConfig</td></tr><tr class=""><td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a href="#nativeEncodeMode" class="signatureLink">nativeEncodeMode</a> : Boolean = false<div class="summaryTableDescription">
+		 If set to true, encoding uses AS-native JSON.stringify()
+		 
+		 Native mode is internally faster, but won't respect [DontSerialize] tags and won't automatically add
+		 an alias tag.</div></td><td class="summaryTableOwnerCol">ArgonautConfig</td></tr><tr class=""><td class="summaryTablePaddingCol">&nbsp;</td><td class="summaryTableInheritanceCol">&nbsp;</td><td class="summaryTableSignatureCol"><a href="#tagClassesWhenEncoding" class="signatureLink">tagClassesWhenEncoding</a> : Boolean = true<div class="summaryTableDescription">
+		 By default, all complex objects get tagged with the aliasId during serialization.</div></td><td class="summaryTableOwnerCol">ArgonautConfig</td></tr></table></div><script language="javascript" type="text/javascript"><!--
+										showHideInherited();
+										--></script><div class="MainContent"><div class="detailSectionHeader">Property Detail</div><a name="propertyDetail"></a><a name="aliasId"></a><table class="detailHeader" cellpadding="0" cellspacing="0"><tr><td class="detailHeaderName">aliasId</td><td class="detailHeaderType">property</td></tr></table><div class="detailBody"><code>public var aliasId:String = __jsonclass__</code><p></p><p></p><p>
+		 The property to use to identify the remote class identifier. By default, this value is "__jsonclass__",
+		 which is consistent with <a href="http://json-rpc.org" target="">json-rpc</a>, but it can be re-set here to anything.
+		 </p></div><a name="propertyDetail"></a><a name="decodeErrorHandleMode"></a><table class="detailHeader" cellpadding="0" cellspacing="0"><tr><td class="detailHeaderName">decodeErrorHandleMode</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td></tr></table><div class="detailBody"><code>public var decodeErrorHandleMode:String = DECODE_ERROR_TRACE</code><p></p><p></p><p>
+		 How should Argonaut behave when it runs into errors while decoding?
+		 
+		 By default, we simply catch and trace the errors (equivalent to AMF). Other options:
+		 ArgonautConstants.DECODE_ERROR_ERROR - Throw errors
+		 ArgonautConstants.DECODE_ERROR_IGNORE - Do nothing at all, not even trace
+		 </p></div><a name="propertyDetail"></a><a name="nativeEncodeMode"></a><table class="detailHeader" cellpadding="0" cellspacing="0"><tr><td class="detailHeaderName">nativeEncodeMode</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td></tr></table><div class="detailBody"><code>public var nativeEncodeMode:Boolean = false</code><p></p><p></p><p>
+		 If set to true, encoding uses AS-native JSON.stringify()
+		 
+		 Native mode is internally faster, but won't respect [DontSerialize] tags and won't automatically add
+		 an alias tag.
+		 </p></div><a name="propertyDetail"></a><a name="tagClassesWhenEncoding"></a><table class="detailHeader" cellpadding="0" cellspacing="0"><tr><td class="detailHeaderName">tagClassesWhenEncoding</td><td class="detailHeaderType">property</td><td class="detailHeaderRule">&nbsp;</td></tr></table><div class="detailBody"><code>public var tagClassesWhenEncoding:Boolean = true</code><p></p><p></p><p>
+		 By default, all complex objects get tagged with the aliasId during serialization.
+		 Set this to false to suppress tagging.
+		 </p></div><br/><br/><hr><br/><p></p><center class="copyright"><footer></footer><br/>Thu Mar 1 2012, 11:02 AM -08:00  </center></div></body></html><!--<br/>Thu Mar 1 2012, 11:02 AM -08:00  -->

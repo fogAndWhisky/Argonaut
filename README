@@ -1,0 +1,146 @@
+Argonaut JSON/AS3 Serializer/Deserializer
+v 0.01, built on 29 Feb, 2012
+
+-- ACKNOWLEDGEMENTS
+I am indebted to Rocket Ninja, Inc. for their assistance in the development of this utility
+
+-- LICENSE
+Argonaut is released under the MIT License
+Copyright (C) 2012, Marc Tanenbaum
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation 
+files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, 
+modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the 
+Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
+OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+
+-- WHAT IS ARGONAUT?
+Argonaut provides a simple way for Actionscript clients to share classes with servers through JSON.
+
+Servers can (and routinely do) return data formatted as JSON, a data format more concise than XML and more human-readable than AMF. You may have loaded some JSON in the past and hand-tooled an interpreter to convert the JSON into something useful in AS3. Something like this:
+var jsonString:String = someDataILoaded;
+var json:Object = JSON.parse(jsonString);
+var instance:MyClass = new MyClass();
+instance.someValue = json.someValue;
+instance.someOtherValue = json.someOtherValue;
+
+This is pretty tedious and error-prone, and can be difficult if your JSON has deeply nested elements. Argonaut bypasses all this hand-tooling by automating the process. What’s more (and better) is that Argonaut provides a method to automatically identify which class(es) the JSON maps to.
+How we use JSON
+So we call a server and get some JSON back. Often this JSON is structured around the data’s logical use. For example, a server call might return some JSON like this:
+{
+    “name”:”Argo”,
+    “launchDate”:10403500012,
+    “captain”:”Jason”,
+    “complement”: [
+        {
+			“name”:“Bellerophon”,
+			“age”:21
+		},
+		{
+    		“name”:“Castor”,
+    		“age”:22
+		},
+		{
+    		“name”:“Heracles”,
+    		“age”:30
+		}
+    ]
+}
+
+The data here might be reflected in an EpicGalley class. Possibly the server has an EpicGalley.java or EpicGalley.php class and the client has an EpicGalley.as class. Not an unusual setup when sharing data back and forth. But note how this bit of JSON also includes an array of other objects, perhaps instances of a Hero.as class. You can easily see how this would look in AS3 with a bit of hand tooling:
+var galley:EpicGalley = new EpicGalley();
+galley.name = json.name;    //assumes we have some JSON to work with
+galley.captain = json.captain;
+galley.launchDate = json.launchDate;
+galley.complement = [];
+var aa:uint = json.complement.length;
+for (var a:uint = 0; a < aa; a++)
+{
+    var hero:Hero = new Hero();
+    hero.name = json.complement[a].name;
+    hero.age = json.complement[a].age;   
+	galley.complement.push(hero);
+}
+
+That gets to be a lot of code, even in this simple example; again, it’s tedious and error-prone, and doesn’t scale well if the JSON turns out to be complex and full of deeply nested elements. Now let’s look at how Argonaut handles the same problem:
+
+Argonaut.registerClassAlias(“com.example.EpicGalley”, EpicGalley);
+Argonaut.registerClassAlias("com.example.Hero", Hero);
+var galley:EpicGalley = Argonaut.generate(json);
+
+Argonaut uses reflection to analyze mapped classes and can use these mappings to infer a lot of information about the JSON it's processing. For example, if the mapped AS class uses a typed Vector to store the JSON array of Heroes, Argonaut knows to manufacture Hero classes from the JSON array. Argonaut understands all common JSON data types (Number, String, Boolean, Object, Array and Null) and can also interpret JSON as custom classes or even core Actionscript classes (e.g., Sprite or BitmapData). Additionally, Argonaut allows the JSON to provide deterministic mappings to remove any guessing.
+
+So let’s look at Argonaut’s two basic deserialization use cases. We call these “participating” and “non-participating” JSON.
+
+
+-- PARTICIPATING JSON
+If you have a server-side developer who loves you (or at least tolerates your presence), you can ask him to identify the class right in the JSON using an alias tag. By default, this tag is ‘__jsonclass__’ (consistent with json-rpc), but you can reset it to anything you agree on.
+
+The participating JSON would look like this:
+{
+    “__jsonclass__”:”com.example.EpicGalley”
+    “name”:”Argo”,
+    “launchDate”:10403500012,
+    “captain”:”Jason”,
+    “complement”: [
+		{
+            “__jsonclass__”:”com.example.Hero”
+			“name”:“Bellerophon”,
+			“age”:21
+		},
+        //The rest of the crew manifest
+	]
+}
+
+You then apply the code I noted above and poof! out pops an AS3 instance.
+
+//NB: these first two lines are required just once
+Argonaut.registerClassAlias(“com.example.EpicGalley”, EpicGalley);
+Argonaut.registerClassAlias("com.example.Hero", Hero);
+//This single line is all that’s really required for serialization
+var galley:EpicGalley = Argonaut.generate(json);
+
+--NON-PARTICIPATING JSON
+Of course the service you call may be outside your control, and the developer too busy going to parties to add an alias. Never fear! That dev may never love you the way that I do, but that doesn’t mean you can’t parse his JSON. When dealing with non-participating JSON, simply provide Argonaut with the class manually:
+
+var galley:EpicGalley = Argonaut.generateAs(json, EpicGalley);
+
+The obvious limitation with this approach is that you need to know what kind of class you’re expecting to receive, and provide it to Argonaut every time.
+
+Also, note that — because Argonaut uses the mapped class’s property/data type mappings — we only need to provide the class of the enclosing instance. Everything inside that instance will be coerced as those mappings dictate.
+
+-- SERIALIZATION
+Argonaut is really about inbound data (i.e., receiving and de-serializing JSON), but an outbound pipeline is also useful if you want to dispatch classes as JSON. The JSON class in AS3 does this (partially) by providing the JSON.stringify() method, but it has a rather serious limitation: there’s no way to suppress properties that aren’t needed for serialization.
+
+For example, you might have this Class:
+public class Example
+{
+    public var name:String;
+	public var id:uint;
+    public const gravity:Number = 9.8;
+	public var textField:TextField;
+}
+
+When sending the JSON, you probably want to send name and id, but the constant gravity and the (very complex!) textField property probably shouldn’t go over the wire. To fix this, Argonaut provides a [DontSerialize] metatag. Edit the class to:
+public class Example
+{
+    public var name:String;
+	public var id:uint;
+	[DontSerialize]
+    public const gravity:Number = 9.8;
+    [DontSerialize]
+	public var textField:TextField;
+}
+
+If you run the instance through Argonaut.stringify(), the resulting JSON will only include only that name and id fields. Note that use of the [DontSerialize] metatag requires -keep-as3-metadata+=“DontSerialize” to be marked in the compiler.
+
+Finally, the Argonaut serializer automatically tags JSON objects with a “__jsonclass__” tag so that a recipient may also know the datatype of any complex objects.

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<overviews> 
+    <packages> 
+        <package name="net.sfmultimedia.argonaut"> 
+            <shortDescription> 
+                <![CDATA[ 
+                    Argonaut provides AMF-style class serialization/deserialization between AS3 and JSON objects.
+                ]]> 
+            </shortDescription> 
+            <description> 
+                <![CDATA[ 
+                	Argonaut provides AMF-style class serialization/deserialization between AS3 and JSON objects. It leverages the built-in JSON class in Flex SDK 4.6. If your project requires an older SDK, see the companion project argonaut_non-native-.01.
+                ]]> 
+            </description> 
+        </package> 
+    </packages> 
+</overviews>

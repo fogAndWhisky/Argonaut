@@ -1,0 +1,50 @@
+{
+	"__jsonclass__": "net.sfmultimedia.argonaut.AnAliasForTestSubClass",
+	"aNumber": 102.25,
+	"anInt": -100,
+	"aUint": 100,
+	"aBoolean":true,
+	"aString":"Hera",
+	"anArray": [
+		true,
+		3.14,
+		"third item",
+		{"fourthString":"Chiron"}
+	],
+	"aStar": {
+		"aStarString":"Phineas",
+		"aStarNumber":7
+	},
+	"anObject": {
+		"anObjectFalse":false,
+		"anObjectTrue":true,
+		"anObjectObject":{
+			"anObjectObjectString":"Talos"
+		}
+	},
+	"aComplexObject": {
+		"text": "Thessalus",
+		"x": 20.5,
+		"y": 100
+	},
+	"aNumberInSubClass":999,
+	"aVectorOfStrings": [
+		"Heracles",
+		"Bellerophon",
+		"Castor"
+	],
+	"aVectorOfComplexity": [
+		{
+			"name":"Heracles",
+			"age":30
+		},
+		{
+			"name":"Bellerophon",
+			"age":21
+		},
+		{
+			"name":"Castor",
+			"age":22
+		}
+	]
+}
