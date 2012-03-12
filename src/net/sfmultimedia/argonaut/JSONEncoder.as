@@ -56,20 +56,26 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return	The instance expressed as a JSON string
 		 */
-		public static function stringify(instance:*, config:ArgonautConfig = null):String
+		public static function stringify(instance:*, config:ArgonautConfig = null, pretty:Boolean = false):String
 		{
 			if (config != null)
 			{
 				JSONEncoder.config = config;
 			}
-			
+
 			if (JSONEncoder.config.nativeEncodeMode)
 			{
 				return JSON.stringify(instance);
 			}
 
 			instanceRegistrar = [];
-			var retv:String = parseElement(instance);
+			var retv:String = parseElement(instance, null);
+
+			if (!pretty)
+			{
+				//If not pretty, strip tabs and returns
+				retv = retv.replace(/\t|\n/g, "");
+			}
 			instanceRegistrar = null;
 
 			return retv;
@@ -78,13 +84,17 @@ package net.sfmultimedia.argonaut
 		/**
 		 * Recursively parse the nodes of the instance and assign the public values to the JSON output
 		 * 
+		 * For efficiency, we assume pretty-printing. We then quickly strip tabs and returns if not pretty-printing.
+		 * 
 		 * @param instance	The instance we're deconstructing
 		 * @param type		The associated datatype (can be null whenever we're at the top of an Object or Array)
+		 * @param depth		For pretty-printing, increment depth as we descend
 		 * 
 		 * @return Some JSON-formatted text
 		 */
-		private static function parseElement(instance:*, type:String = null):String
+		private static function parseElement(instance:*, type:String = null, depth:int = 0):String
 		{
+			depth ++;
 			var retv:String = "";
 			if (instance == null)
 			{
@@ -117,7 +127,7 @@ package net.sfmultimedia.argonaut
 				}
 			}
 			instanceRegistrar[instanceRegistrar.length] = instance;
-
+			
 			switch(type)
 			{
 				case ArgonautConstants.STRING:
@@ -134,67 +144,83 @@ package net.sfmultimedia.argonaut
 					var elementCount:uint = 0;
 					for (var instanceProp:String in instance)
 					{
-						retv += "\"" + instanceProp + "\"" + ":" + parseElement(instance[instanceProp]) + ",";
+						retv += prettyFormat("\"" + instanceProp + "\"" + ":" + parseElement(instance[instanceProp], null, depth) + ",", depth);
 						elementCount++;
 					}
-					retv = (elementCount > 0) ? "{" + retv.substr(0, retv.length - 1) + "}" : instance;
+					if (elementCount > 0)
+					{
+						retv = prettyFormat("{", depth-1) + retv.substr(0, retv.length - 1) + prettyFormat("}", depth-1);
+					}
+					else if (classObject === Object)
+					{
+						retv = prettyFormat("{", depth-1) + prettyFormat("}", depth-1);;
+					}
+					else
+					{
+						retv = instance;
+					}
 					// Sometimes an Object is just an object
 					break;
 				case ArgonautConstants.ARRAY:
-					retv += "[";
-					var len:uint = (instance as Array).length;
+				case ArgonautConstants.VECTOR:
+					retv += prettyFormat("[", depth-1);
+					var len:uint = instance.length;
 					if (len == 0)
 					{
-						retv += "]";
+						retv += prettyFormat("]", depth-1);
 					}
 					else
 					{
 						for (var a:uint = 0; a < len; a++)
 						{
-							retv += parseElement(instance[a], null) + ",";
+							retv += prettyFormat(parseElement(instance[a], null, depth) + ",", depth);
 						}
-						retv = retv.substr(0, retv.length - 1) + "]";
-					}
-					break;
-				case ArgonautConstants.VECTOR:
-					retv += "[";
-					len = instance.length;
-					if (len == 0)
-					{
-						retv += "]";
-					}
-					else
-					{
-						for (var b:uint = 0; b < len; b++)
-						{
-							retv += parseElement(instance[b], null) + ",";
-						}
-						retv = retv.substr(0, retv.length - 1) + "]";
+						retv = retv.substr(0, retv.length - 1) + prettyFormat("]", depth-1);
 					}
 					break;
 				default:
 					// For everything else, we use the ArgonautClassRegister
-					retv += "{";
+					retv += prettyFormat("{", depth-1);
 					var description:Object = ClassRegister.getClassMap(classObject);
 					if (JSONEncoder.config.tagClassesWhenEncoding)
 					{
-						retv += "\"" + JSONEncoder.config.aliasId + "\":\"" + getQualifiedClassName(classObject) + "\",";
+						retv += prettyFormat("\"" + JSONEncoder.config.aliasId + "\":\"" + getQualifiedClassName(classObject) + "\",", depth);
 					}
 					for (var node:String in description)
 					{
-						var result:String = parseElement(instance[node], PropertyTypeMapping(description[node]).type);
-						retv += result ? "\"" + node + "\":" + result + "," : "";
+						var result:String = parseElement(instance[node], PropertyTypeMapping(description[node]).type, depth);
+						retv += result ? prettyFormat("\"" + node + "\":" + result + ",", depth) : "";
 					}
 					if (retv.lastIndexOf(",") == retv.length - 1)
 					{
-						retv = retv.substr(0, retv.length - 1) + "}";
+						retv = retv.substr(0, retv.length - 1) + prettyFormat("}", depth-1);
 					}
 					else
 					{
-						retv += "}";
+						retv += prettyFormat("}", depth-1);
 					}
 					break;
 			}
+			
+			return retv;
+		}
+		
+		/**
+		 * Add tabs and returns for pretty printing
+		 * 
+		 * @param retv	The string we're printing
+		 * @param depth	The node depth
+		 * 
+		 * @return The pretty-printed element
+		 */
+		private static function prettyFormat(retv:String, depth:int):String
+		{
+			var tabs:String = "";
+			for (var a:uint = 0; a < depth; a++)
+			{
+				tabs += "\t";
+			}
+			retv = "\n" + tabs + retv;
 			return retv;
 		}
 	}

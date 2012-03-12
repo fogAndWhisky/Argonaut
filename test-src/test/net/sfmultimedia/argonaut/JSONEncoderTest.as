@@ -56,6 +56,17 @@ package test.net.sfmultimedia.argonaut
 			assertValues(json);
 		}
 		
+		[Test]
+		public function stringifyWithPrettyPrint():void
+		{
+			var jsonString:String = JSONEncoder.stringify(instance, null, true);
+			
+			trace(jsonString);
+			
+			var json:Object = JSON.parse(jsonString);
+			assertValues(json);
+		}
+		
 		private function assertValues(obj:*):void
 		{
 			Assert.assertEquals("test.net.sfmultimedia.argonaut::TestSubClass", obj.__jsonclass__);

@@ -26,6 +26,10 @@ package test.net.sfmultimedia.argonaut
 		public var aComplexObject:TextField;
 		
 		public const aConstant:String = "Phineas";
+		
+		public var anEmptyObject:Object = {};
+		
+		public var anEmptyArray:Array = [];
 
 		//Everything below this line shouldn't be serialized
 		[DontSerialize]

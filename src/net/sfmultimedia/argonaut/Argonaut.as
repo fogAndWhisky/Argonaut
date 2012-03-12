@@ -153,12 +153,13 @@ package net.sfmultimedia.argonaut
 		 * Serialize the class's public instance properties into JSON
 		 * 
 		 * @param instance	The instance we want to process
+		 * @param pretty	If true, result will be pretty-printed
 		 * 
 		 * @return The instance expressed as a JSON string
 		 */
-		public function stringify(instance:*):String
+		public function stringify(instance:*, pretty:Boolean = false):String
 		{
-			return JSONEncoder.stringify(instance, config);
+			return JSONEncoder.stringify(instance, config, pretty);
 		}
 	}
 }
