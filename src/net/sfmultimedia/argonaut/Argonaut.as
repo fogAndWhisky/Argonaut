@@ -19,13 +19,14 @@ package net.sfmultimedia.argonaut
 	 * <ul>
 	 * <li>Map the class. This is equivalent to flash.net.registerClassAlias</li>
 	 * 		<code>
-	 * 			Argonaut.registerClassAlias("fully.qualified.RemoteClassName", LocalClass);
+	 * 			var argonaut:Argonaut = new Argonaut();
+	 * 			argonaut.registerClassAlias("fully.qualified.RemoteClassName", LocalClass);
 	 * 		</code>
 	 * 	
 	 * 	<li>Then, with JSON in hand:</li>
 	 * 		<code>
 	 * 			<p>//The json can be either a JSON-encoded String, or the object put through AS's JSON.parse() </p>
-	 * 			<p>var myInstance:LocalClass = Argonaut.generate(json);</p>
+	 * 			<p>var myInstance:LocalClass = argonaut.generate(json);</p>
 	 * 		</code>
 	 *  
 	 * </ul>
@@ -35,7 +36,7 @@ package net.sfmultimedia.argonaut
 	 * case, you'll need to tell Argonaut what class you want every time you hand it some JSON. This is very simple:</p>
 	 * 		<code>
 	 * 			<p>//The json can be either a JSON-encoded String, or the object put through AS's JSON.parse()</p>
-	 * 			<p>var myInstance:LocalClass = Argonaut.generateAs(json, LocalClass);</p>
+	 * 			<p>var myInstance:LocalClass = argonaut.generateAs(json, LocalClass);</p>
 	 * 		</code>
 	 * 		
 	 * 	<p>Serializing:</p>
@@ -48,7 +49,7 @@ package net.sfmultimedia.argonaut
 	 *  changed or suppressed altogether by changing the ArgonautConfig.</li>
 	 *  </ul>
 	 * 	<code>
-	 * 		<p>var jsonAsString:String = Argonaut.stringify(myInstance);</p>
+	 * 		<p>var jsonAsString:String = argonaut.stringify(myInstance);</p>
 	 * 	</code>
 	 * 
 	 * 
@@ -76,7 +77,7 @@ package net.sfmultimedia.argonaut
 		/**
 		 * Details of how Argonaut behaves. Use setConfiguration() to change these behaviors
 		 */
-		private static var config:ArgonautConfig = new ArgonautConfig();
+		private var config:ArgonautConfig = new ArgonautConfig();
 		
 		/**
 		 * Override default configuration
@@ -85,7 +86,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @see net.sfmultimedia.argonaut.ArgonautConfig
 		 */
-		public static function setConfiguration(value:ArgonautConfig):void
+		public function setConfiguration(value:ArgonautConfig):void
 		{
 			config = value;
 		}
@@ -93,7 +94,7 @@ package net.sfmultimedia.argonaut
 		/**
 		 * Get the configuration
 		 */
-		public static function getConfiguration():ArgonautConfig
+		public function getConfiguration():ArgonautConfig
 		{
 			return config;
 		}
@@ -104,7 +105,7 @@ package net.sfmultimedia.argonaut
 		 * @param aliasName 	The alias to use, probably the fully-qualified class name of the remote class.
 		 * @param classObject	The Actionscript class to which we map the alias
 		 */
-		public static function registerClassAlias(aliasName:String, classObject:Class):void
+		public function registerClassAlias(aliasName:String, classObject:Class):void
 		{
 			ClassRegister.registerClassAlias(aliasName, classObject);
 		}
@@ -118,14 +119,14 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return Whatever gets generated through the deserialization process
 		 */
-		public static function generate(json:*):*
+		public function generate(json:*):*
 		{
 			if (json is String)
 			{
 				json = JSON.parse(json);
 			}
 			
-			return JSONDecoder.generate(json);
+			return JSONDecoder.generate(json, config);
 		}
 		
 		/**
@@ -138,7 +139,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return An instance, dictated by the data and the classObject
 		 */
-		public static function generateAs(json:*, classObject:Class):*
+		public function generateAs(json:*, classObject:Class):*
 		{
 			if (json is String)
 			{
@@ -155,9 +156,9 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The instance expressed as a JSON string
 		 */
-		public static function stringify(instance:*):String
+		public function stringify(instance:*):String
 		{
-			return JSONEncoder.stringify(instance);
+			return JSONEncoder.stringify(instance, config);
 		}
 	}
 }

@@ -11,10 +11,12 @@ package test.net.sfmultimedia.argonaut
 	 */
 	public class ArgonautTest extends Sprite
 	{
+		private static var argonaut:Argonaut = new Argonaut();
+		
 		[Test]
 		public function getConfiguration():void
 		{
-			var config:ArgonautConfig = Argonaut.getConfiguration();
+			var config:ArgonautConfig = argonaut.getConfiguration();
 			//Ensure defaults as expected
 			Assert.assertEquals("__jsonclass__", config.aliasId);
 			Assert.assertEquals(true, config.tagClassesWhenEncoding);
@@ -27,7 +29,7 @@ package test.net.sfmultimedia.argonaut
 			config.tagClassesWhenEncoding = false;
 			config.decodeErrorHandleMode = ArgonautConstants.DECODE_ERROR_ERROR;
 			config.nativeEncodeMode = true;
-			Argonaut.setConfiguration(config);
+			argonaut.setConfiguration(config);
 			
 			Assert.assertEquals("someOtherAlias", config.aliasId);
 			Assert.assertEquals(false, config.tagClassesWhenEncoding);
@@ -43,7 +45,7 @@ package test.net.sfmultimedia.argonaut
 			config.tagClassesWhenEncoding = true;
 			config.decodeErrorHandleMode = ArgonautConstants.DECODE_ERROR_TRACE;
 			config.nativeEncodeMode = false;
-			Argonaut.setConfiguration(config);
+			argonaut.setConfiguration(config);
 		}
 	}
 }

@@ -1,7 +1,7 @@
 package net.sfmultimedia.argonaut
 {
 	import flash.utils.getQualifiedClassName;
-	
+
 	/**
 	 * <p>Takes any AS instance and convert its public, non-static properties to JSON.</p>
 	 * 
@@ -43,30 +43,38 @@ package net.sfmultimedia.argonaut
 	 */
 	public class JSONEncoder
 	{
+		/** The configuration of the current Argonaut instance */
+		private static var config:ArgonautConfig = new ArgonautConfig();
 		/** Stores instance identifiers to prevent cyclic encoding */
 		private static var instanceRegistrar:Array;
-		
+
 		/**
 		 * Serialize the class's public instance properties into JSON
 		 * 
 		 * @param instance	The instance we want to process
+		 * @param config	The configuration of the Argonaut instance we're currently using
 		 * 
 		 * @return	The instance expressed as a JSON string
 		 */
-		public static function stringify(instance:*):String
+		public static function stringify(instance:*, config:ArgonautConfig = null):String
 		{
-			if (Argonaut.getConfiguration().nativeEncodeMode)
+			if (config != null)
+			{
+				JSONEncoder.config = config;
+			}
+			
+			if (JSONEncoder.config.nativeEncodeMode)
 			{
 				return JSON.stringify(instance);
 			}
-			
+
 			instanceRegistrar = [];
 			var retv:String = parseElement(instance);
 			instanceRegistrar = null;
-			
+
 			return retv;
 		}
-		
+
 		/**
 		 * Recursively parse the nodes of the instance and assign the public values to the JSON output
 		 * 
@@ -82,28 +90,26 @@ package net.sfmultimedia.argonaut
 			{
 				return retv;
 			}
-			
+
 			var classObject:Class = ClassRegister.registerClassByInstance(instance);
 			if (type == null)
 			{
 				type = getQualifiedClassName(classObject);
 			}
-			
+
 			if (type.indexOf(ArgonautConstants.VECTOR) > -1)
 			{
 				type = ArgonautConstants.VECTOR;
 			}
-			
-			//Recursive reference protection.
+
+			// Recursive reference protection.
 			var index:int = instanceRegistrar.indexOf(instance);
 			if (index > -1 && instance === instanceRegistrar[index])
 			{
-				//Primitives are safe
-				if (instance is Number ||
-					instance is Boolean ||
-					instance is String)
+				// Primitives are safe
+				if (instance is Number || instance is Boolean || instance is String)
 				{
-					//No-op
+					// No-op
 				}
 				else
 				{
@@ -111,7 +117,7 @@ package net.sfmultimedia.argonaut
 				}
 			}
 			instanceRegistrar[instanceRegistrar.length] = instance;
-			
+
 			switch(type)
 			{
 				case ArgonautConstants.STRING:
@@ -129,9 +135,10 @@ package net.sfmultimedia.argonaut
 					for (var instanceProp:String in instance)
 					{
 						retv += "\"" + instanceProp + "\"" + ":" + parseElement(instance[instanceProp]) + ",";
-						elementCount ++;
+						elementCount++;
 					}
-					retv = (elementCount > 0) ? "{" + retv.substr(0, retv.length - 1) + "}" : instance;	//Sometimes an Object is just an object
+					retv = (elementCount > 0) ? "{" + retv.substr(0, retv.length - 1) + "}" : instance;
+					// Sometimes an Object is just an object
 					break;
 				case ArgonautConstants.ARRAY:
 					retv += "[";
@@ -166,22 +173,18 @@ package net.sfmultimedia.argonaut
 					}
 					break;
 				default:
-					//For everything else, we use the ArgonautClassRegister
+					// For everything else, we use the ArgonautClassRegister
 					retv += "{";
-					
 					var description:Object = ClassRegister.getClassMap(classObject);
-					
-					if (Argonaut.getConfiguration().tagClassesWhenEncoding)
+					if (JSONEncoder.config.tagClassesWhenEncoding)
 					{
-						retv += "\"" + Argonaut.getConfiguration().aliasId + "\":\"" + getQualifiedClassName(classObject) + "\",";
+						retv += "\"" + JSONEncoder.config.aliasId + "\":\"" + getQualifiedClassName(classObject) + "\",";
 					}
-					
 					for (var node:String in description)
 					{
 						var result:String = parseElement(instance[node], PropertyTypeMapping(description[node]).type);
 						retv += result ? "\"" + node + "\":" + result + "," : "";
 					}
-					
 					if (retv.lastIndexOf(",") == retv.length - 1)
 					{
 						retv = retv.substr(0, retv.length - 1) + "}";

@@ -25,16 +25,28 @@ package net.sfmultimedia.argonaut
 	 */
 	public class JSONDecoder
 	{
+		/** The configuration of the current Argonaut instance */
+		private static var config:ArgonautConfig = new ArgonautConfig();
+		
+		
 		/**
 		 * Generate a Class instance from JSON by matching its foreign alias to a previously mapped alias.
 		 * 
 		 * This method works ONLY with participating services or primitives.
 		 * 
+		 * @param json		The json Object
+		 * @param config	The configuration of the Argonaut instance we're currently using
+		 * 
 		 * @return Whatever gets generated through the deserialization process
 		 */
-		public static function generate(json : Object) : *
+		public static function generate(json:Object, config:ArgonautConfig = null):*
 		{
-			var aliasId : String = Argonaut.getConfiguration().aliasId;
+			if (config != null)
+			{
+				JSONDecoder.config = config;
+			}
+			
+			var aliasId:String = JSONDecoder.config.aliasId;
 
 			// Handle primitives
 			if (json is Array)
@@ -71,7 +83,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return An instantiated instance
 		 */
-		public static function generateAs(json : Object, classObject : Class) : *
+		public static function generateAs(json:Object, classObject:Class):*
 		{
 			// Ensure class is registered.
 			ClassRegister.registerClass(classObject);
@@ -91,17 +103,17 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The instance
 		 */
-		private static function parseElement(retv : *, json : Object):*
+		private static function parseElement(retv:*, json:Object):*
 		{
-			var classObject : Class;
-			var classMap : Object;
+			var classObject:Class;
+			var classMap:Object;
 			classObject = ClassRegister.registerClassByInstance(retv);
 			classMap = ClassRegister.getClassMap(classObject);
 
 			for (var key:String in json)
 			{
-				var value : Object = json[key];
-				var mapping : PropertyTypeMapping = classMap[key];
+				var value:Object = json[key];
+				var mapping:PropertyTypeMapping = classMap[key];
 
 				if (mapping == null)
 				{
@@ -113,7 +125,7 @@ package net.sfmultimedia.argonaut
 						{
 							setValue(retv, key, value);
 						}
-						catch(e : Error)
+						catch(e:Error)
 						{
 							handleError(e);
 						}
@@ -126,7 +138,7 @@ package net.sfmultimedia.argonaut
 							retv[key] = [];
 							parseElement(retv[key], value);
 						}
-						catch(e : Error)
+						catch(e:Error)
 						{
 							handleError(e);
 						}
@@ -139,7 +151,7 @@ package net.sfmultimedia.argonaut
 							retv[key] = {};
 							parseElement(retv[key], value);
 						}
-						catch(e : Error)
+						catch(e:Error)
 						{
 							handleError(e);
 						}
@@ -157,7 +169,7 @@ package net.sfmultimedia.argonaut
 							{
 								setValue(retv, key, value);
 							}
-							catch(e : Error)
+							catch(e:Error)
 							{
 								handleError(e);
 							}
@@ -169,7 +181,7 @@ package net.sfmultimedia.argonaut
 								retv[key] = [];
 								parseElement(retv[key], value);
 							}
-							catch(e : Error)
+							catch(e:Error)
 							{
 								handleError(e);
 							}
@@ -182,12 +194,12 @@ package net.sfmultimedia.argonaut
 								{
 									handleError(new Error("WARNING: Since Adobe Player doesn't support Generics, Vectors need to have a default instantiation in the client class in order to be deserialized."));
 								}
-							
-								//parseElement(retv[key], value);
+
+								// parseElement(retv[key], value);
 								var elementType:String = (mapping.elementNormalizedType == null) ? mapping.elementType : mapping.elementNormalizedType;
 								parseList(retv[key], value as Array, elementType);
 							}
-							catch(e : Error)
+							catch(e:Error)
 							{
 								handleError(e);
 							}
@@ -199,7 +211,7 @@ package net.sfmultimedia.argonaut
 								retv[key] = {};
 								parseElement(retv[key], value);
 							}
-							catch(e : Error)
+							catch(e:Error)
 							{
 								handleError(e);
 							}
@@ -207,11 +219,11 @@ package net.sfmultimedia.argonaut
 						default:
 							try
 							{
-								var valueClass : Object = getDefinitionByName(mapping.type) as Class;
+								var valueClass:Object = getDefinitionByName(mapping.type) as Class;
 								retv[key] = new valueClass();
 								parseElement(retv[key], value);
 							}
-							catch(e : Error)
+							catch(e:Error)
 							{
 								handleError(e);
 							}
@@ -222,7 +234,7 @@ package net.sfmultimedia.argonaut
 
 			return retv;
 		}
-		
+
 		/**
 		 * Loop through a list, instantiating elements of dataType when provided
 		 */
@@ -239,11 +251,11 @@ package net.sfmultimedia.argonaut
 						classObject = null;
 						break;
 					default:
-						 classObject = getDefinitionByName(dataType) as Class;
-						 break;
+						classObject = getDefinitionByName(dataType) as Class;
+						break;
 				}
 			}
-				
+
 			var aa:uint = json.length;
 			for (var a:uint = 0; a < aa; a++)
 			{
@@ -268,9 +280,9 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return True if this is a participating class
 		 */
-		private static function isParticipant(json : Object) : Boolean
+		private static function isParticipant(json:Object):Boolean
 		{
-			var aliasId : String = Argonaut.getConfiguration().aliasId;
+			var aliasId:String = JSONDecoder.config.aliasId;
 			return json.hasOwnProperty(aliasId);
 		}
 
@@ -283,7 +295,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The modified retv
 		 */
-		private static function setValue(retv : *, key : String, value : *) : *
+		private static function setValue(retv:*, key:String, value:*):*
 		{
 			retv[key] = value;
 			return retv;
@@ -294,9 +306,9 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @param e An error
 		 */
-		private static function handleError(e : Error) : void
+		private static function handleError(e:Error):void
 		{
-			var decodeErrorHandleMode : String = Argonaut.getConfiguration().decodeErrorHandleMode;
+			var decodeErrorHandleMode:String = JSONDecoder.config.decodeErrorHandleMode;
 			switch(decodeErrorHandleMode)
 			{
 				case ArgonautConstants.DECODE_ERROR_IGNORE:
