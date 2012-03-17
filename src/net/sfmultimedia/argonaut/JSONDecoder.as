@@ -28,7 +28,7 @@ package net.sfmultimedia.argonaut
 	{
 		
 		/** The configuration of the current Argonaut instance */
-		public var _config:ArgonautConfig;
+		private var _config:ArgonautConfig;
 		
 		private var classRegister:ClassRegister;
 
