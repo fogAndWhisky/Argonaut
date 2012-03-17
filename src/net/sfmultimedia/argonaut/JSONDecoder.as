@@ -1,5 +1,6 @@
 package net.sfmultimedia.argonaut
 {
+	import flash.events.EventDispatcher;
 	import flash.utils.getDefinitionByName;
 
 	/**
@@ -23,10 +24,19 @@ package net.sfmultimedia.argonaut
 	 * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
 	 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	 */
-	public class JSONDecoder
+	public class JSONDecoder extends EventDispatcher
 	{
+		
 		/** The configuration of the current Argonaut instance */
-		private static var config:ArgonautConfig = new ArgonautConfig();
+		public var _config:ArgonautConfig;
+		
+		private var classRegister:ClassRegister;
+
+		public function JSONDecoder(config:ArgonautConfig, classRegister:ClassRegister)
+		{
+			this.config = config;
+			this.classRegister = classRegister;
+		}
 		
 		
 		/**
@@ -35,18 +45,12 @@ package net.sfmultimedia.argonaut
 		 * This method works ONLY with participating services or primitives.
 		 * 
 		 * @param json		The json Object
-		 * @param config	The configuration of the Argonaut instance we're currently using
 		 * 
 		 * @return Whatever gets generated through the deserialization process
 		 */
-		public static function generate(json:Object, config:ArgonautConfig = null):*
+		public function generate(json:Object):*
 		{
-			if (config != null)
-			{
-				JSONDecoder.config = config;
-			}
-			
-			var aliasId:String = JSONDecoder.config.aliasId;
+			var aliasId:String = config.aliasId;
 
 			// Handle primitives
 			if (json is Array)
@@ -63,7 +67,7 @@ package net.sfmultimedia.argonaut
 			{
 				throw new Error("ArgonautJSONDecoder.generate only works on participating classes. The JSON provided must have an " + aliasId + " property defined. See generateAs instead.");
 			}
-			else if (!ClassRegister.getClassByAlias(json[aliasId]))
+			else if (!classRegister.getClassByAlias(json[aliasId]))
 			{
 				// The object was passed through generate, but we have no mapping.
 				// We can recurse trough it and see if any properties can be mapped
@@ -71,7 +75,7 @@ package net.sfmultimedia.argonaut
 			}
 			else
 			{
-				return generateAs(json, ClassRegister.getClassByAlias(json[aliasId]));
+				return generateAs(json, classRegister.getClassByAlias(json[aliasId]));
 			}
 		}
 
@@ -83,10 +87,10 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return An instantiated instance
 		 */
-		public static function generateAs(json:Object, classObject:Class):*
+		public function generateAs(json:Object, classObject:Class):*
 		{
 			// Ensure class is registered.
-			ClassRegister.registerClass(classObject);
+			classRegister.registerClass(classObject);
 
 			// Start parsing
 			return parseElement(new classObject(), json);
@@ -103,12 +107,12 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The instance
 		 */
-		private static function parseElement(retv:*, json:Object):*
+		private function parseElement(retv:*, json:Object):*
 		{
 			var classObject:Class;
 			var classMap:Object;
-			classObject = ClassRegister.registerClassByInstance(retv);
-			classMap = ClassRegister.getClassMap(classObject);
+			classObject = classRegister.registerClassByInstance(retv);
+			classMap = classRegister.getClassMap(classObject);
 
 			for (var key:String in json)
 			{
@@ -238,7 +242,7 @@ package net.sfmultimedia.argonaut
 		/**
 		 * Loop through a list, instantiating elements of dataType when provided
 		 */
-		private static function parseList(retv:*, json:Array, dataType:String = null):void
+		private function parseList(retv:*, json:Array, dataType:String = null):void
 		{
 			var classObject:Class;
 			var alternateClassObject:Class;
@@ -270,9 +274,9 @@ package net.sfmultimedia.argonaut
 				{
 					//A vector is a list of a type, but that type can include sub-classes.
 					//Allow a JSON element to override the default element type.
-					if (json[a][JSONDecoder.config.aliasId] != null)
+					if (json[a][config.aliasId] != null)
 					{
-						alternateClassObject = ClassRegister.getClassByAlias(json[a][JSONDecoder.config.aliasId]);
+						alternateClassObject = classRegister.getClassByAlias(json[a][config.aliasId]);
 						//We found a class object
 						if (alternateClassObject)
 						{
@@ -311,9 +315,9 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return True if this is a participating class
 		 */
-		private static function isParticipant(json:Object):Boolean
+		private function isParticipant(json:Object):Boolean
 		{
-			var aliasId:String = JSONDecoder.config.aliasId;
+			var aliasId:String = config.aliasId;
 			return json.hasOwnProperty(aliasId);
 		}
 
@@ -326,30 +330,30 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The modified retv
 		 */
-		private static function setValue(retv:*, key:String, value:*):*
+		private function setValue(retv:*, key:String, value:*):*
 		{
 			retv[key] = value;
 			return retv;
 		}
 
+		public function get config():ArgonautConfig
+		{
+			return _config;
+		}
+
+		public function set config(value:ArgonautConfig):void
+		{
+			_config = value;
+		}
+
 		/**
-		 * Handle decoding errors
+		 * Dispatch decoding errors to the ErrorHandler
 		 * 
 		 * @param e An error
 		 */
-		private static function handleError(e:Error):void
+		private function handleError(e:Error):void
 		{
-			var decodeErrorHandleMode:String = JSONDecoder.config.decodeErrorHandleMode;
-			switch(decodeErrorHandleMode)
-			{
-				case ArgonautConstants.DECODE_ERROR_IGNORE:
-					return;
-				case ArgonautConstants.DECODE_ERROR_TRACE:
-					trace(e.message);
-					return;
-				case ArgonautConstants.DECODE_ERROR_ERROR:
-					throw (e);
-			}
+			dispatchEvent(new ArgonautErrorEvent(ArgonautErrorEvent.DECODING_ERROR, e));
 		}
 	}
 }

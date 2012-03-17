@@ -1,5 +1,6 @@
 package test.net.sfmultimedia.argonaut
 {
+	import net.sfmultimedia.argonaut.ArgonautConfig;
 	import net.sfmultimedia.argonaut.ClassRegister;
 	import net.sfmultimedia.argonaut.JSONDecoder;
 
@@ -25,16 +26,22 @@ package test.net.sfmultimedia.argonaut
 		private static var PARTICIPATING_URL:String = "test/data/participating.json";
 		private static var json:Object = {};
 		private static const urlLoader : URLLoader = new URLLoader();
+		
+		private static var config:ArgonautConfig = new ArgonautConfig();
+		private static var classRegister:ClassRegister = new ClassRegister();
+		private static var decoder:JSONDecoder;
 
 		[BeforeClass(async, timeout="3000")]
-		public static function loadJSON():void
+		public static function construct():void
 		{
+			decoder = new JSONDecoder(config, classRegister);
+			
 			const urlRequest:URLRequest = new URLRequest(PARTICIPATING_URL);
 			Async.proceedOnEvent(JSONDecoderTest, urlLoader, Event.COMPLETE);
 			
-			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.AnAliasForTestSubClass", TestSubClass);
-			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.TestVectorSubElement", TestVectorSubElement);
-			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.TestVectorElement", TestVectorElement);
+			classRegister.registerClassAlias("net.sfmultimedia.argonaut.AnAliasForTestSubClass", TestSubClass);
+			classRegister.registerClassAlias("net.sfmultimedia.argonaut.TestVectorSubElement", TestVectorSubElement);
+			classRegister.registerClassAlias("net.sfmultimedia.argonaut.TestVectorElement", TestVectorElement);
 
 			try
 			{
@@ -55,13 +62,13 @@ package test.net.sfmultimedia.argonaut
 		public static function teardown() : void
 		{
 			json = null;
-			ClassRegister.flush();
+			classRegister.flush();
 		}
 
 		[Test(order="2")]
 		public function generate() : void
 		{
-			var testSubClass:TestSubClass = JSONDecoder.generate(json);
+			var testSubClass:TestSubClass = decoder.generate(json);
 			Assert.assertNotNull("generate failed to generate an instance", testSubClass);
 			assertValues(testSubClass);
 		}
@@ -69,7 +76,7 @@ package test.net.sfmultimedia.argonaut
 		[Test(order="1")]
 		public function generateAs() : void
 		{
-			var testSubClass:TestSubClass = JSONDecoder.generateAs(json, TestSubClass);
+			var testSubClass:TestSubClass = decoder.generateAs(json, TestSubClass);
 			Assert.assertNotNull("generateAs failed to generate an instance", testSubClass);
 			assertValues(testSubClass);
 		}

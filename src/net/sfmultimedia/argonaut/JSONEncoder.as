@@ -1,5 +1,6 @@
 package net.sfmultimedia.argonaut
 {
+	import flash.events.EventDispatcher;
 	import flash.utils.getQualifiedClassName;
 
 	/**
@@ -41,29 +42,34 @@ package net.sfmultimedia.argonaut
 	 * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
 	 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	 */
-	public class JSONEncoder
+	public class JSONEncoder extends EventDispatcher
 	{
-		/** The configuration of the current Argonaut instance */
-		private static var config:ArgonautConfig = new ArgonautConfig();
 		/** Stores instance identifiers to prevent cyclic encoding */
 		private static var instanceRegistrar:Array;
+		
+		private var _config:ArgonautConfig = new ArgonautConfig();
+		
+		private var classRegister:ClassRegister;
+
+		/**
+		 * Class constructor
+		 */
+		public function JSONEncoder(config:ArgonautConfig, classRegister:ClassRegister)
+		{
+			this.config = config;
+			this.classRegister = classRegister;
+		}
 
 		/**
 		 * Serialize the class's public instance properties into JSON
 		 * 
 		 * @param instance	The instance we want to process
-		 * @param config	The configuration of the Argonaut instance we're currently using
 		 * 
 		 * @return	The instance expressed as a JSON string
 		 */
-		public static function stringify(instance:*, config:ArgonautConfig = null, pretty:Boolean = false):String
+		public function stringify(instance:*, pretty:Boolean = false):String
 		{
-			if (config != null)
-			{
-				JSONEncoder.config = config;
-			}
-
-			if (JSONEncoder.config.nativeEncodeMode)
+			if (config.nativeEncodeMode)
 			{
 				return JSON.stringify(instance);
 			}
@@ -92,7 +98,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return Some JSON-formatted text
 		 */
-		private static function parseElement(instance:*, type:String = null, depth:int = 0):String
+		private function parseElement(instance:*, type:String = null, depth:int = 0):String
 		{
 			depth ++;
 			var retv:String = "";
@@ -101,7 +107,7 @@ package net.sfmultimedia.argonaut
 				return retv;
 			}
 
-			var classObject:Class = ClassRegister.registerClassByInstance(instance);
+			var classObject:Class = classRegister.registerClassByInstance(instance);
 			if (type == null)
 			{
 				type = getQualifiedClassName(classObject);
@@ -123,7 +129,7 @@ package net.sfmultimedia.argonaut
 				}
 				else
 				{
-					throw new Error("ERROR: Cyclic reference found. ArgonautJSONEncoder does not permit recursive references.");
+					handleError(new Error("ERROR: Cyclic reference found. ArgonautJSONEncoder does not permit recursive references."));
 				}
 			}
 			instanceRegistrar[instanceRegistrar.length] = instance;
@@ -181,10 +187,10 @@ package net.sfmultimedia.argonaut
 				default:
 					// For everything else, we use the ArgonautClassRegister
 					retv += prettyFormat("{", depth-1);
-					var description:Object = ClassRegister.getClassMap(classObject);
-					if (JSONEncoder.config.tagClassesWhenEncoding)
+					var description:Object = classRegister.getClassMap(classObject);
+					if (config.tagClassesWhenEncoding)
 					{
-						retv += prettyFormat("\"" + JSONEncoder.config.aliasId + "\":\"" + getQualifiedClassName(classObject) + "\",", depth);
+						retv += prettyFormat("\"" + config.aliasId + "\":\"" + getQualifiedClassName(classObject) + "\",", depth);
 					}
 					for (var node:String in description)
 					{
@@ -222,6 +228,26 @@ package net.sfmultimedia.argonaut
 			}
 			retv = "\n" + tabs + retv;
 			return retv;
+		}
+
+		public function get config():ArgonautConfig
+		{
+			return _config;
+		}
+
+		public function set config(value:ArgonautConfig):void
+		{
+			_config = value;
+		}
+
+		/**
+		 * Dispatch encoding errors to the ErrorHandler
+		 * 
+		 * @param e An error
+		 */
+		private function handleError(e:Error):void
+		{
+			dispatchEvent(new ArgonautErrorEvent(ArgonautErrorEvent.ENCODING_ERROR, e));
 		}
 	}
 }

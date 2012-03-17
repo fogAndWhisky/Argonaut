@@ -16,11 +16,18 @@ package test.net.sfmultimedia.argonaut
 	 */
 	public class ClassRegisterTest extends Sprite
 	{
+		public static var classRegister:ClassRegister;
+		
+		[BeforeClass]
+		public static function construct():void
+		{
+			classRegister = new ClassRegister();
+		}
 		
 		[Test]
 		public function registerClassAlias() : void 
 		{
-			ClassRegister.registerClassAlias("flash.display.Sprite", Sprite);
+			classRegister.registerClassAlias("flash.display.Sprite", Sprite);
 			
 			var registeredClass:Class = flash.net.getClassByAlias("flash.display.Sprite");
 			
@@ -31,22 +38,22 @@ package test.net.sfmultimedia.argonaut
 		[Test]
 		public function flush() : void 
 		{
-			ClassRegister.registerClassAlias("flash.display.Sprite", Sprite);
-			var registeredClass:Class = ClassRegister.getClassByAlias("flash.display.Sprite");
+			classRegister.registerClassAlias("flash.display.Sprite", Sprite);
+			var registeredClass:Class = classRegister.getClassByAlias("flash.display.Sprite");
 			Assert.assertTrue("The class alias did not register to the specified Class", registeredClass == Sprite);
 			
-			ClassRegister.flush();
+			classRegister.flush();
 			
-			var registeredClassAfterFlush:Class = ClassRegister.getClassByAlias("flash.display.Sprite");
+			var registeredClassAfterFlush:Class = classRegister.getClassByAlias("flash.display.Sprite");
 			Assert.assertNull("The register should be empty, but the previously registered class Sprite isn't null", registeredClassAfterFlush);
 		}
 		
 		[Test]
 		public function getClassByAlias() : void 
 		{
-			ClassRegister.registerClassAlias("flash.display.Sprite", Sprite);
+			classRegister.registerClassAlias("flash.display.Sprite", Sprite);
 			
-			var registeredClass:Class = ClassRegister.getClassByAlias("flash.display.Sprite");
+			var registeredClass:Class = classRegister.getClassByAlias("flash.display.Sprite");
 			
 			Assert.assertNotNull("The class alias did not register correctly and came back null", registeredClass);
 			Assert.assertTrue("The class alias did not register to the specified Class", registeredClass == Sprite);
@@ -55,10 +62,10 @@ package test.net.sfmultimedia.argonaut
 		[Test]
 		public function registerClass() : void 
 		{
-			ClassRegister.registerClass(Sprite);
+			classRegister.registerClass(Sprite);
 			
-			var isRegisteredClassRegistered:Boolean = ClassRegister.isClassRegistered(Sprite);
-			var isNonregisteredClassRegistered:Boolean = ClassRegister.isClassRegistered(TextField);
+			var isRegisteredClassRegistered:Boolean = classRegister.isClassRegistered(Sprite);
+			var isNonregisteredClassRegistered:Boolean = classRegister.isClassRegistered(TextField);
 			
 			Assert.assertTrue("The registered class did not report as being registered", isRegisteredClassRegistered);
 			Assert.assertFalse("The non-registered class somehow came back as registered", isNonregisteredClassRegistered);
@@ -68,13 +75,13 @@ package test.net.sfmultimedia.argonaut
 		public function registerClassByInstance() : void 
 		{
 			var instance:Sprite = new Sprite();
-			var clazz:Object = ClassRegister.registerClassByInstance(instance);
+			var clazz:Object = classRegister.registerClassByInstance(instance);
 			
 			Assert.assertNotNull("Mapping an instance to registerClassByInstance should return a class", clazz);
 			Assert.assertTrue("Mapped a Sprite, but the class returned was " + getQualifiedClassName(clazz), clazz == Sprite);
 			
-			var isRegisteredClassRegistered:Boolean = ClassRegister.isClassRegistered(Sprite);
-			var isNonregisteredClassRegistered:Boolean = ClassRegister.isClassRegistered(TextField);
+			var isRegisteredClassRegistered:Boolean = classRegister.isClassRegistered(Sprite);
+			var isNonregisteredClassRegistered:Boolean = classRegister.isClassRegistered(TextField);
 			
 			Assert.assertTrue("The registered class did not report as being registered", isRegisteredClassRegistered);
 			Assert.assertFalse("The non-registered class somehow came back as registered", isNonregisteredClassRegistered);
@@ -83,13 +90,13 @@ package test.net.sfmultimedia.argonaut
 		[Test]
 		public function getClassMap() : void 
 		{
-			ClassRegister.flush();
+			classRegister.flush();
 			
-			Assert.assertNull("There shouldn't be any classes registered at this time", ClassRegister.getClassMap(Sprite));
+			Assert.assertNull("There shouldn't be any classes registered at this time", classRegister.getClassMap(Sprite));
 			
-			ClassRegister.registerClass(Sprite);
+			classRegister.registerClass(Sprite);
 			
-			var classMap:Object = ClassRegister.getClassMap(Sprite);
+			var classMap:Object = classRegister.getClassMap(Sprite);
 			
 			Assert.assertNotNull("A registered failed to return a map", classMap);
 			

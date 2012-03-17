@@ -1,5 +1,7 @@
 package test.net.sfmultimedia.argonaut
 {
+	import net.sfmultimedia.argonaut.JSONDecoder;
+	import net.sfmultimedia.argonaut.ArgonautConfig;
 	import net.sfmultimedia.argonaut.ClassRegister;
 	import net.sfmultimedia.argonaut.JSONEncoder;
 
@@ -15,11 +17,21 @@ package test.net.sfmultimedia.argonaut
 	{
 		private var instance:TestSubClass;
 		
+		private static var config:ArgonautConfig = new ArgonautConfig();
+		private static var classRegister:ClassRegister = new ClassRegister();
+		private static var encoder:JSONEncoder;
+		
 
+		[BeforeClass]
+		public static function construct() : void
+		{
+			encoder = new JSONEncoder(config, classRegister);
+		}
+		
 		[AfterClass]
 		public static function teardown() : void
 		{
-			ClassRegister.flush();
+			classRegister.flush();
 		}
 		
 		[Before]
@@ -51,7 +63,7 @@ package test.net.sfmultimedia.argonaut
 		[Test]
 		public function stringify():void
 		{
-			var jsonString:String = JSONEncoder.stringify(instance);
+			var jsonString:String = encoder.stringify(instance);
 			var json:Object = JSON.parse(jsonString);
 			assertValues(json);
 		}
@@ -59,7 +71,7 @@ package test.net.sfmultimedia.argonaut
 		[Test]
 		public function stringifyWithPrettyPrint():void
 		{
-			var jsonString:String = JSONEncoder.stringify(instance, null, true);
+			var jsonString:String = encoder.stringify(instance, true);
 			
 			trace(jsonString);
 			

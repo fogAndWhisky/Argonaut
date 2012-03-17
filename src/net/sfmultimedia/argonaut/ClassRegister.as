@@ -1,5 +1,6 @@
 package net.sfmultimedia.argonaut
 {
+	import flash.events.EventDispatcher;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.describeType;
@@ -35,7 +36,7 @@ package net.sfmultimedia.argonaut
 	 * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
 	 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	 */
-	public class ClassRegister
+	public class ClassRegister extends EventDispatcher
 	{
 		
 		/** A dictionary of all mapped classes, keyed to the class. The values are hash maps of all public properties and their data type */
@@ -47,7 +48,7 @@ package net.sfmultimedia.argonaut
 		 * <p>Warning: as the name implies, calling this method will remove all your prior registrations. This is useful
 		 * for testing, but is unlikely ever to be needed at runtime.</p>
 		 */
-		public static function flush():void
+		public function flush():void
 		{
 			register = new Dictionary();
 		}
@@ -58,7 +59,7 @@ package net.sfmultimedia.argonaut
 		 * @param aliasName 	The alias to use, probably the fully-qualified class name of the remote class.
 		 * @param classObject	The Actionscript class to which we map the alias
 		 */
-		public static function registerClassAlias(aliasName:String, classObject:Class):void
+		public function registerClassAlias(aliasName:String, classObject:Class):void
 		{
 			flash.net.registerClassAlias(aliasName, classObject);
 			registerClass(classObject);
@@ -71,9 +72,16 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The mapped Class, or null if no mapping
 		 */
-		public static function getClassByAlias(aliasName:String):Class
+		public function getClassByAlias(aliasName:String):Class
 		{
-			var classObject:Class = flash.net.getClassByAlias(aliasName);
+			try
+			{
+				var classObject:Class = flash.net.getClassByAlias(aliasName);
+			}
+			catch(e:Error)
+			{
+				handleError(new Error("WARNING:: ClassRegister.getClassByAlias can find no mapping for " + aliasName));
+			}
 			
 			if (register[classObject])
 			{
@@ -87,7 +95,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @param classObject	The Actionscript class to which we map the alias
 		 */
-		public static function registerClass(classObject:Class):void
+		public function registerClass(classObject:Class):void
 		{
 			if (register[classObject])
 			{
@@ -102,7 +110,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @param instance	The instance of a Class we want to register
 		 */
-		public static function registerClassByInstance(instance:*):Class
+		public function registerClassByInstance(instance:*):Class
 		{
 			var classObject:Class = getClassFromInstance(instance);
 			registerClass(classObject);
@@ -116,7 +124,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return True if the class has been registered
 		 */
-		 public static function isClassRegistered(classObject:Class):Boolean
+		 public function isClassRegistered(classObject:Class):Boolean
 		 {
 			return Boolean(register[classObject]);
 		 }
@@ -128,7 +136,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The hash map of property names and types
 		 */
-		 public static function getClassMap(classObject:Class):Object
+		 public function getClassMap(classObject:Class):Object
 		 {
 			return register[classObject];
 		 }
@@ -140,7 +148,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return	The resulting property > data type map
 		 */
-		private static function explodeClass(classObject:Class):Object
+		private function explodeClass(classObject:Class):Object
 		{
 			var xmlDescriptionOfClass:XML = describeType(classObject);
 			var nonstaticPropertiesXML:XMLList = xmlDescriptionOfClass.factory.variable;
@@ -198,13 +206,13 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return Either null, if we're not serializing, or the normalized data type
 		 */
-		private static function generateMapping(node:XML):PropertyTypeMapping
+		private function generateMapping(node:XML):PropertyTypeMapping
 		{
 			var mapping:PropertyTypeMapping = new PropertyTypeMapping();
 			mapping.type = node.@type;
 			
 			//Respect the DontSerialize metatag.
-			var serialize:Boolean = node..metadata.(@name==ArgonautConstants.DONT_SERIALIZE).length() == 0;
+			var serialize:Boolean = node..metadata.(@name == ArgonautConstants.DONT_SERIALIZE).length() == 0;
 			if (!serialize)
 			{
 				return null;
@@ -237,7 +245,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The normalized type, or null if no normalization was possible
 		 */
-		private static function normalize(type:String):String
+		private function normalize(type:String):String
 		{
 			// The following datatypes are "normal". Anything that falls through the switch statement
 			// represents something not ordinarily supported by JSON.
@@ -272,7 +280,7 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @return The Class to which the instance belongs
 		 */
-		private static function getClassFromInstance(instance:*):Class
+		private function getClassFromInstance(instance:*):Class
 		{
 			//Get the class from the instance
 			var classObject:Class = instance.constructor as Class;
@@ -285,6 +293,14 @@ package net.sfmultimedia.argonaut
 			}
 			
 			return classObject;
+		}
+		
+		/**
+		 * Dispatch any errors to the ErrorHandler
+		 */
+		private function handleError(e:Error):void
+		{
+			dispatchEvent(new ArgonautErrorEvent(ArgonautErrorEvent.REGISTER_ERROR, e));
 		}
 	}
 }

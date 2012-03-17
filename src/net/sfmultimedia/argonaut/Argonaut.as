@@ -80,6 +80,41 @@ package net.sfmultimedia.argonaut
 		private var config:ArgonautConfig = new ArgonautConfig();
 		
 		/**
+		 * Registry of classes we've mapped
+		 */
+		 private var classRegister:ClassRegister;
+		
+		/**
+		 * The error handler
+		 */
+		 private var errorHandler:ErrorHandler;
+		
+		/**
+		 * Encodes classes to JSON
+		 */
+		 private var encoder:JSONEncoder;
+		
+		/**
+		 * Decodes classes from JSON
+		 */
+		 private var decoder:JSONDecoder;
+		 
+		/**
+		 * Class constructor
+		 */
+		public function Argonaut() 
+		{
+			classRegister = new ClassRegister();
+			errorHandler = new ErrorHandler(config);
+			encoder = new JSONEncoder(config, classRegister);
+			decoder = new JSONDecoder(config, classRegister);
+			
+			classRegister.addEventListener(ArgonautErrorEvent.REGISTER_ERROR, errorHandler.handleError);
+			encoder.addEventListener(ArgonautErrorEvent.ENCODING_ERROR, errorHandler.handleError);
+			decoder.addEventListener(ArgonautErrorEvent.DECODING_ERROR, errorHandler.handleError);
+		}
+		
+		/**
 		 * Override default configuration
 		 * 
 		 * @param value A changed configuration
@@ -89,6 +124,9 @@ package net.sfmultimedia.argonaut
 		public function setConfiguration(value:ArgonautConfig):void
 		{
 			config = value;
+			encoder.config = config;
+			decoder.config = config;
+			errorHandler.config = config;
 		}
 		
 		/**
@@ -107,7 +145,7 @@ package net.sfmultimedia.argonaut
 		 */
 		public function registerClassAlias(aliasName:String, classObject:Class):void
 		{
-			ClassRegister.registerClassAlias(aliasName, classObject);
+			classRegister.registerClassAlias(aliasName, classObject);
 		}
 		
 		/**
@@ -126,7 +164,7 @@ package net.sfmultimedia.argonaut
 				json = JSON.parse(json);
 			}
 			
-			return JSONDecoder.generate(json, config);
+			return decoder.generate(json);
 		}
 		
 		/**
@@ -146,7 +184,7 @@ package net.sfmultimedia.argonaut
 				json = JSON.parse(json);
 			}
 			
-			return JSONDecoder.generateAs(json, classObject);
+			return decoder.generateAs(json, classObject);
 		}
 		
 		/**
@@ -159,7 +197,7 @@ package net.sfmultimedia.argonaut
 		 */
 		public function stringify(instance:*, pretty:Boolean = false):String
 		{
-			return JSONEncoder.stringify(instance, config, pretty);
+			return encoder.stringify(instance, pretty);
 		}
 	}
 }
