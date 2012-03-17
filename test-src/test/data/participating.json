@@ -46,5 +46,18 @@
 			"name":"Castor",
 			"age":22
 		}
+	],
+	"aVectorWithSubtypes": [
+		{
+			"name":"should be default vector data type"
+		},
+		{
+			"__jsonclass__":"net.sfmultimedia.argonaut.TestVectorElement",
+			"name":"should be default vector data type"
+		},
+		{
+			"__jsonclass__":"net.sfmultimedia.argonaut.TestVectorSubElement",
+			"name":"should be overridden vector data subtype"
+		}
 	]
 }

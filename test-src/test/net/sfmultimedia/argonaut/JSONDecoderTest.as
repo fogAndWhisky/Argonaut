@@ -31,6 +31,10 @@ package test.net.sfmultimedia.argonaut
 		{
 			const urlRequest:URLRequest = new URLRequest(PARTICIPATING_URL);
 			Async.proceedOnEvent(JSONDecoderTest, urlLoader, Event.COMPLETE);
+			
+			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.AnAliasForTestSubClass", TestSubClass);
+			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.TestVectorSubElement", TestVectorSubElement);
+			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.TestVectorElement", TestVectorElement);
 
 			try
 			{
@@ -57,7 +61,6 @@ package test.net.sfmultimedia.argonaut
 		[Test(order="2")]
 		public function generate() : void
 		{
-			ClassRegister.registerClassAlias("net.sfmultimedia.argonaut.AnAliasForTestSubClass", TestSubClass);
 			var testSubClass:TestSubClass = JSONDecoder.generate(json);
 			Assert.assertNotNull("generate failed to generate an instance", testSubClass);
 			assertValues(testSubClass);
@@ -97,10 +100,14 @@ package test.net.sfmultimedia.argonaut
 			Assert.assertEquals(100, testSubClass.aComplexObject.y);
 			Assert.assertEquals(999, testSubClass.aNumberInSubClass);
 			
+			Assert.assertEquals(3, testSubClass.aVectorOfStrings.length);
+			
 			Assert.assertEquals("Heracles", testSubClass.aVectorOfStrings[0]);
 			Assert.assertEquals("Bellerophon", testSubClass.aVectorOfStrings[1]);
 			Assert.assertEquals("Castor", testSubClass.aVectorOfStrings[2]);
 			
+			Assert.assertEquals(3, testSubClass.aVectorOfComplexity.length);
+
 			Assert.assertTrue(testSubClass.aVectorOfComplexity[0] is TestVectorElement);
 			Assert.assertTrue(testSubClass.aVectorOfComplexity[1] is TestVectorElement);
 			Assert.assertTrue(testSubClass.aVectorOfComplexity[2] is TestVectorElement);
@@ -112,6 +119,17 @@ package test.net.sfmultimedia.argonaut
 			Assert.assertEquals(30, testSubClass.aVectorOfComplexity[0].age);
 			Assert.assertEquals(21, testSubClass.aVectorOfComplexity[1].age);
 			Assert.assertEquals(22, testSubClass.aVectorOfComplexity[2].age);
+			
+			Assert.assertEquals(3, testSubClass.aVectorWithSubtypes.length);
+
+			Assert.assertTrue(testSubClass.aVectorWithSubtypes[0] is TestVectorElement);
+			Assert.assertFalse(testSubClass.aVectorWithSubtypes[0] is TestVectorSubElement);
+
+			Assert.assertTrue(testSubClass.aVectorWithSubtypes[1] is TestVectorElement);
+			Assert.assertFalse(testSubClass.aVectorWithSubtypes[1] is TestVectorSubElement);
+
+			Assert.assertTrue(testSubClass.aVectorWithSubtypes[2] is TestVectorElement);
+			Assert.assertTrue(testSubClass.aVectorWithSubtypes[2] is TestVectorSubElement);
 		}
 		
 		private static function jsonLoaded(event:Event, passThrough:*):void

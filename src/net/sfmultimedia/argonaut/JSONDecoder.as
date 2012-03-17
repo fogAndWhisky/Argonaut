@@ -241,6 +241,8 @@ package net.sfmultimedia.argonaut
 		private static function parseList(retv:*, json:Array, dataType:String = null):void
 		{
 			var classObject:Class;
+			var alternateClassObject:Class;
+			var element:*;
 			if (dataType)
 			{
 				switch(dataType)
@@ -257,12 +259,41 @@ package net.sfmultimedia.argonaut
 			}
 
 			var aa:uint = json.length;
+			
+			trace("JSONDECODER length" , aa, classObject);
+			
 			for (var a:uint = 0; a < aa; a++)
 			{
+				trace("     JSONDECODER" , a);
+				
 				if (classObject)
 				{
-					var element:* = new classObject();
+					//A vector is a list of a type, but that type can include sub-classes.
+					//Allow a JSON element to override the default element type.
+					if (json[a][JSONDecoder.config.aliasId] != null)
+					{
+						alternateClassObject = ClassRegister.getClassByAlias(json[a][JSONDecoder.config.aliasId]);
+						//We found a class object
+						if (alternateClassObject)
+						{
+							element = new alternateClassObject();
+							if (!element is classObject)
+							{
+								handleError(new Error("WARNING::Attempt to instantiate " + alternateClassObject + " in a vector of type " + classObject + ". " + alternateClassObject + " does not sublcass " + classObject));
+								alternateClassObject = null;
+								element = null;
+							}
+						}
+						
+					}
+					if (!element)
+					{
+						element = new classObject();
+					}
 					retv[a] = parseElement(element, json[a]);
+					
+					alternateClassObject = null;
+					element = null;
 				}
 				else
 				{

@@ -14,5 +14,7 @@ package test.net.sfmultimedia.argonaut
 		
 		public var aVectorOfComplexity:Vector.<TestVectorElement> = new <TestVectorElement>[];
 		
+		public var aVectorWithSubtypes:Vector.<TestVectorElement> = new <TestVectorElement>[];
+		
 	}
 }

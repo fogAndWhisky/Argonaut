@@ -5,6 +5,8 @@ package test.net.sfmultimedia.argonaut
 	 */
 	public class TestVectorElement
 	{
+		public var __jsonclass__:String;
+		
 		public var name:String;
 		public var age:uint;
 		
