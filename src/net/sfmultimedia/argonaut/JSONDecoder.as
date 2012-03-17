@@ -264,12 +264,8 @@ package net.sfmultimedia.argonaut
 
 			var aa:uint = json.length;
 			
-			trace("JSONDECODER length" , aa, classObject);
-			
 			for (var a:uint = 0; a < aa; a++)
 			{
-				trace("     JSONDECODER" , a);
-				
 				if (classObject)
 				{
 					//A vector is a list of a type, but that type can include sub-classes.
