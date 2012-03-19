@@ -1,11 +1,12 @@
 package net.sfmultimedia.argonaut
 {
+	import flash.events.EventDispatcher;
 	/**
 	 * Refer all errors to this class. We can either throw the error, simply trace it, or ignore it altogether 
 	 * 
 	 * @author mtanenbaum
 	 */
-	public class ErrorHandler
+	public class ErrorHandler extends EventDispatcher
 	{
 		public var _config:ArgonautConfig;
 		
@@ -20,6 +21,10 @@ package net.sfmultimedia.argonaut
 		/**
 		 * Handle decoding errors
 		 * 
+		 * @throws ArgonautErrorEvent.DECODING_ERROR
+		 * @throws ArgonautErrorEvent.ENCODING_ERROR
+		 * @throws ArgonautErrorEvent.REGISTER_ERROR
+		 * 
 		 * @param event An ArgonautErrorEvent, with error as its payload
 		 */
 		public function handleError(event:ArgonautErrorEvent):void
@@ -30,7 +35,8 @@ package net.sfmultimedia.argonaut
 				case ArgonautConstants.DECODE_ERROR_IGNORE:
 					return;
 				case ArgonautConstants.DECODE_ERROR_TRACE:
-					trace(event.error.message);
+					trace("ARGONAUT::", event.type, event.error.message);
+					dispatchEvent(event);
 					return;
 				case ArgonautConstants.DECODE_ERROR_ERROR:
 					throw (event.error);

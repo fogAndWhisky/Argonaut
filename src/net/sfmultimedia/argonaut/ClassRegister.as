@@ -70,6 +70,8 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * @param aliasName 	The alias to use, probably the fully-qualified class name of the remote class.
 		 * 
+		 * @throws ArgonautErrorEvent.REGISTER_ERROR
+		 * 
 		 * @return The mapped Class, or null if no mapping
 		 */
 		public function getClassByAlias(aliasName:String):Class

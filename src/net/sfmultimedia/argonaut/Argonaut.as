@@ -1,5 +1,6 @@
 package net.sfmultimedia.argonaut 
 {
+	import flash.events.EventDispatcher;
 	/**
 	 * <p>Argonaut provides AMF-style class serialization/deserialization between AS3 and JSON objects. It leverages
 	 * the built-in JSON class in Flex SDK 4.6. If your project requires an older SDK, see the companion
@@ -51,6 +52,11 @@ package net.sfmultimedia.argonaut
 	 * 	<code>
 	 * 		<p>var jsonAsString:String = argonaut.stringify(myInstance);</p>
 	 * 	</code>
+	 * 	
+	 * 	@eventType ArgonautErrorEvent.DECODE_ERROR - Handle errors during decoding
+	 * 	@eventType ArgonautErrorEvent.ENCODE_ERROR - Handle errors during encoding
+	 * 	@eventType ArgonautErrorEvent.PARSE_ERROR - Handle errors during parsing
+	 * 	@eventType ArgonautErrorEvent.REGISTER_ERROR - Handle errors during class registration
 	 * 
 	 * 
 	 * @author mtanenbaum
@@ -71,7 +77,7 @@ package net.sfmultimedia.argonaut
 	 * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
 	 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	 */
-	public class Argonaut
+	public class Argonaut extends EventDispatcher
 	{
 
 		/**
@@ -109,9 +115,15 @@ package net.sfmultimedia.argonaut
 			encoder = new JSONEncoder(config, classRegister);
 			decoder = new JSONDecoder(config, classRegister);
 			
+			//Set up all listeners
 			classRegister.addEventListener(ArgonautErrorEvent.REGISTER_ERROR, errorHandler.handleError);
 			encoder.addEventListener(ArgonautErrorEvent.ENCODING_ERROR, errorHandler.handleError);
 			decoder.addEventListener(ArgonautErrorEvent.DECODING_ERROR, errorHandler.handleError);
+			//Then have this class listen to the central Error Bus
+			errorHandler.addEventListener(ArgonautErrorEvent.REGISTER_ERROR, onErrorEvent);
+			errorHandler.addEventListener(ArgonautErrorEvent.ENCODING_ERROR, onErrorEvent);
+			errorHandler.addEventListener(ArgonautErrorEvent.DECODING_ERROR, onErrorEvent);
+			errorHandler.addEventListener(ArgonautErrorEvent.PARSE_ERROR, onErrorEvent);
 		}
 		
 		/**
@@ -161,7 +173,7 @@ package net.sfmultimedia.argonaut
 		{
 			if (json is String)
 			{
-				json = JSON.parse(json);
+				json = processJsonString(json);
 			}
 			
 			return decoder.generate(json);
@@ -181,7 +193,7 @@ package net.sfmultimedia.argonaut
 		{
 			if (json is String)
 			{
-				json = JSON.parse(json);
+				json = processJsonString(json);
 			}
 			
 			return decoder.generateAs(json, classObject);
@@ -198,6 +210,32 @@ package net.sfmultimedia.argonaut
 		public function stringify(instance:*, pretty:Boolean = false):String
 		{
 			return encoder.stringify(instance, pretty);
+		}
+		
+		/**
+		 * Use native json parsing to turn the string into a JSON-legal object
+		 * 
+		 * @throws ArgonautErrorEvent.PARSE_ERROR if not parseable JSON
+		 */
+		private function processJsonString(value:String):Object
+		{
+			try
+			{
+				return JSON.parse(value);
+			}
+			catch(e:Error)
+			{
+				errorHandler.handleError(new ArgonautErrorEvent(ArgonautErrorEvent.PARSE_ERROR, e));
+			}
+			return null;
+		}
+
+		/**
+		 * Relay to allow external listeners to react to Argonaut error handling
+		 */
+		private function onErrorEvent(event:ArgonautErrorEvent):void
+		{
+			dispatchEvent(event);
 		}
 	}
 }

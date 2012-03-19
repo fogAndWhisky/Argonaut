@@ -92,6 +92,8 @@ package net.sfmultimedia.argonaut
 		 * 
 		 * For efficiency, we assume pretty-printing. We then quickly strip tabs and returns if not pretty-printing.
 		 * 
+		 * @throws ArgonautErrorEvent.ENCODE_ERROR
+		 * 
 		 * @param instance	The instance we're deconstructing
 		 * @param type		The associated datatype (can be null whenever we're at the top of an Object or Array)
 		 * @param depth		For pretty-printing, increment depth as we descend

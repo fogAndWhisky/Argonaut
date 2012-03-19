@@ -102,6 +102,8 @@ package net.sfmultimedia.argonaut
 		 * This method is highly armored against failure, since a lot can go wrong at this point.
 		 * If the property is read-only, or a class requires constructor arguments, things can go awry.
 		 * 
+		 * @throws ArgonautErrorEvent.DECODE_ERROR
+		 * 
 		 * @param retVal	The instance we're constructing
 		 * @param json		The data with which we're populating the instance
 		 * 
@@ -241,6 +243,8 @@ package net.sfmultimedia.argonaut
 
 		/**
 		 * Loop through a list, instantiating elements of dataType when provided
+		 * 
+		 * @throws ArgonautErrorEvent.DECODE_ERROR
 		 */
 		private function parseList(retv:*, json:Array, dataType:String = null):void
 		{

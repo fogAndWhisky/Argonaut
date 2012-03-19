@@ -15,6 +15,8 @@ package net.sfmultimedia.argonaut
 		
 		public static const DECODING_ERROR:String = "DECODING_ERROR";
 		
+		public static const PARSE_ERROR:String = "PARSE_ERROR";
+		
 		public static const REGISTER_ERROR:String = "REGISTER_ERROR";
 		
 		public var error:Error;
