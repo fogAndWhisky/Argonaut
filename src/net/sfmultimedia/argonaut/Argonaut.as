@@ -77,7 +77,7 @@ package net.sfmultimedia.argonaut
 	 * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
 	 * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	 */
-	public class Argonaut extends EventDispatcher
+	public class Argonaut extends EventDispatcher implements IArgonaut
 	{
 
 		/**
@@ -127,11 +127,7 @@ package net.sfmultimedia.argonaut
 		}
 		
 		/**
-		 * Override default configuration
-		 * 
-		 * @param value A changed configuration
-		 * 
-		 * @see net.sfmultimedia.argonaut.ArgonautConfig
+		 * @inheritDoc
 		 */
 		public function setConfiguration(value:ArgonautConfig):void
 		{
@@ -142,7 +138,7 @@ package net.sfmultimedia.argonaut
 		}
 		
 		/**
-		 * Get the configuration
+		 * @inheritDoc
 		 */
 		public function getConfiguration():ArgonautConfig
 		{
@@ -150,10 +146,7 @@ package net.sfmultimedia.argonaut
 		}
 		
 		/**
-		 * Map the remote classname to a local class.
-		 * 
-		 * @param aliasName 	The alias to use, probably the fully-qualified class name of the remote class.
-		 * @param classObject	The Actionscript class to which we map the alias
+		 * @inerhitDoc
 		 */
 		public function registerClassAlias(aliasName:String, classObject:Class):void
 		{
@@ -161,13 +154,7 @@ package net.sfmultimedia.argonaut
 		}
 		
 		/**
-		 * Generate a Class instance from JSON.
-		 * 
-		 * This method works ONLY with participating services or primitives.
-		 * 
-		 * @param json	Either an object decoded by JSON.parse() into an object or a JSON-encoded String
-		 * 
-		 * @return Whatever gets generated through the deserialization process
+		 * @inheritDoc
 		 */
 		public function generate(json:*):*
 		{
@@ -180,14 +167,7 @@ package net.sfmultimedia.argonaut
 		}
 		
 		/**
-		 * Convert the provided JSON to the provided AS class
-		 * 
-		 * Useful when leveraging JSON data where you can't have access to auto-mapping.
-		 * 
-		 * @param json			Either an object decoded by JSON.parse() into an object or a JSON-encoded String
-		 * @param classObject	The Class we want to map the JSON to.
-		 * 
-		 * @return An instance, dictated by the data and the classObject
+		 * @inheritDoc
 		 */
 		public function generateAs(json:*, classObject:Class):*
 		{
@@ -200,12 +180,7 @@ package net.sfmultimedia.argonaut
 		}
 		
 		/**
-		 * Serialize the class's public instance properties into JSON
-		 * 
-		 * @param instance	The instance we want to process
-		 * @param pretty	If true, result will be pretty-printed
-		 * 
-		 * @return The instance expressed as a JSON string
+		 * @inheritDoc
 		 */
 		public function stringify(instance:*, pretty:Boolean = false):String
 		{
