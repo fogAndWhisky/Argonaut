@@ -132,7 +132,7 @@ package net.sfmultimedia.argonaut
                 if (mapping == null)
                 {
                     // No mapping. Use the JSON value.
-                    if (value is Boolean || value is Number || value is String)
+                    if (value is Boolean || value is Number || value is String || value == null)
                     {
                         // Simple values simply get assigned
                         try
