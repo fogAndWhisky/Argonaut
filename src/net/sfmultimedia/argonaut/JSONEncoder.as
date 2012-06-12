@@ -196,8 +196,11 @@ package net.sfmultimedia.argonaut
                     }
                     for (var node:String in description)
                     {
-                        var result:String = parseElement(instance[node], PropertyTypeMapping(description[node]).type, depth);
-                        retv += result ? prettyFormat("\"" + node + "\":" + result + ",", depth) : "";
+                        if (node != config.aliasId)
+                        {
+                            var result:String = parseElement(instance[node], PropertyTypeMapping(description[node]).type, depth);
+                            retv += result ? prettyFormat("\"" + node + "\":" + result + ",", depth) : "";
+                        }
                     }
                     if (retv.lastIndexOf(",") == retv.length - 1)
                     {
