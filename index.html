@@ -31,37 +31,163 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+        <p>Argonaut provides a simple way for Actionscript clients to share classes with servers through JSON.</p>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>Servers can (and routinely do) return data formatted as JSON, a data format more concise than XML and more human-readable than AMF. You may have loaded some JSON in the past and hand-tooled an interpreter to convert the JSON into something useful in AS3. Something like this:</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<pre><code>var jsonString:String = someDataILoaded;
+var json:Object = JSON.parse(jsonString);
+var instance:MyClass = new MyClass();
+instance.someValue = json.someValue;
+instance.someOtherValue = json.someOtherValue;
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>This is pretty tedious and error-prone, and can be difficult if your JSON has deeply nested elements. Argonaut bypasses all this hand-tooling by automating the process. What’s more (and better) is that Argonaut provides a method to automatically identify which class(es) the JSON maps to.</p>
 
 <h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a name="how-we-use-json" class="anchor" href="#how-we-use-json"><span class="octicon octicon-link"></span></a>How we use JSON</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>So we call a server and get some JSON back. Often this JSON is structured around the data’s logical use. For example, a server call might return some JSON like this:</p>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<pre><code>{
+    “name”:”Argo”,
+    “launchDate”:10403500012,
+    “captain”:”Jason”,
+    “complement”: [
+        {
+    “name”:“Bellerophon”,
+    “age”:21
+    },
+    {
+        “name”:“Castor”,
+        “age”:22
+    },
+    {
+        “name”:“Heracles”,
+        “age”:30
+    }
+    ]
+}
+</code></pre>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>The data here might be reflected in an EpicGalley class. Possibly the server has an EpicGalley.java or EpicGalley.php class and the client has an EpicGalley.as class. Not an unusual setup when sharing data back and forth. But note how this bit of JSON also includes an array of other objects, perhaps instances of a Hero.as class. You can easily see how this would look in AS3 with a bit of hand tooling:</p>
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<pre><code>var galley:EpicGalley = new EpicGalley();
+galley.name = json.name;    //assumes we have some JSON to work with
+galley.captain = json.captain;
+galley.launchDate = json.launchDate;
+galley.complement = [];
+var aa:uint = json.complement.length;
+for (var a:uint = 0; a &lt; aa; a++)
+{
+    var hero:Hero = new Hero();
+    hero.name = json.complement[a].name;
+    hero.age = json.complement[a].age;   
+galley.complement.push(hero);
+}
+</code></pre>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>That gets to be a lot of code, even in this simple example; again, it’s tedious and error-prone, and doesn’t scale well if the JSON turns out to be complex and full of deeply nested elements. Now let’s look at how Argonaut handles the same problem:</p>
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<pre><code>var argonaut:Argonaut = new Argonaut();
+argonaut.registerClassAlias(“com.example.EpicGalley”, EpicGalley);
+argonaut.registerClassAlias("com.example.Hero", Hero);
+var galley:EpicGalley = argonaut.generate(json);
+</code></pre>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<p>Argonaut uses reflection to analyze mapped classes and can use these mappings to infer a lot of information about the JSON it's processing. For example, if the mapped AS class uses a typed Vector to store the JSON array of Heroes, Argonaut knows to manufacture Hero classes from the JSON array. Argonaut understands all common JSON data types (Number, String, Boolean, Object, Array and Null) and can also interpret JSON as custom classes or even core Actionscript classes (e.g., Sprite or BitmapData). Additionally, Argonaut allows the JSON to provide deterministic mappings to remove any guessing.</p>
+
+<p>So let’s look at Argonaut’s two basic deserialization use cases. We call these “participating” and “non-participating” JSON.</p>
+
+<p>-- PARTICIPATING JSON</p>
+
+<p>If you have a server-side developer who loves you (or at least tolerates your presence), you can ask him to identify the class right in the JSON using an alias tag. By default, this tag is ‘__jsonclass__’ (consistent with json-rpc), but you can reset it to anything you agree on.</p>
+
+<p>The participating JSON would look like this:</p>
+
+<pre><code>{
+    “__jsonclass__”:”com.example.EpicGalley”
+    “name”:”Argo”,
+    “launchDate”:10403500012,
+    “captain”:”Jason”,
+    “complement”: [
+        {
+                “__jsonclass__”:”com.example.Hero”
+        “name”:“Bellerophon”,
+        “age”:21
+    },
+    //The rest of the crew manifest
+]
+}
+</code></pre>
+
+<p>You then apply the code I noted above and poof! out pops an AS3 instance.</p>
+
+<pre><code>var argonaut:Argonaut = new Argonaut();
+//NB: these next two lines are required just once per runtime
+argonaut.registerClassAlias(“com.example.EpicGalley”, EpicGalley);
+argonaut.registerClassAlias("com.example.Hero", Hero);
+//This single line is all that’s really required for serialization
+var galley:EpicGalley = argonaut.generate(json);
+</code></pre>
+
+<h2>
+<a name="non-participating-json" class="anchor" href="#non-participating-json"><span class="octicon octicon-link"></span></a>NON-PARTICIPATING JSON</h2>
+
+<p>Of course the service you call may be outside your control, and the service developer too busy going to parties to add an alias. Never fear! That dev may never love you the way that I do, but that doesn’t mean you can’t parse his JSON. When dealing with non-participating JSON, simply provide Argonaut with the class manually:</p>
+
+<pre><code>var galley:EpicGalley = argonaut.generateAs(json, EpicGalley);
+</code></pre>
+
+<p>The obvious limitation with this approach is that you need to know what kind of class you’re expecting to receive, and provide it to Argonaut every time.</p>
+
+<p>Also, note that — because Argonaut uses the mapped class’s property/data type mappings — we only need to provide the class of the enclosing instance. Everything inside that instance will be coerced as those mappings dictate.</p>
+
+<h2>
+<a name="serialization" class="anchor" href="#serialization"><span class="octicon octicon-link"></span></a>SERIALIZATION</h2>
+
+<p>Argonaut is really about inbound data (i.e., receiving and de-serializing JSON), but an outbound pipeline is also useful if you want to dispatch classes as JSON. The JSON class in AS3 does this (partially) by providing the JSON.stringify() method, but it has a rather serious limitation: there’s no way to suppress properties that aren’t needed for serialization.</p>
+
+<p>For example, you might have this Class:</p>
+
+<pre><code>public class Example
+{
+    public var name:String;
+public var id:uint;
+    public const gravity:Number = 9.8;
+public var textField:TextField;
+}
+</code></pre>
+
+<p>When sending the JSON, you probably want to send name and id, but the constant gravity and the (very complex!) textField property probably shouldn’t go over the wire. To fix this, Argonaut provides a <code>[DontSerialize]</code> metatag. Edit the class to:</p>
+
+<pre><code>public class Example
+{
+    public var name:String;
+    public var id:uint;
+[DontSerialize]
+    public const gravity:Number = 9.8;
+    [DontSerialize]
+public var textField:TextField;
+}
+</code></pre>
+
+<p>If you run the instance through argonaut.stringify(), the resulting JSON will only include only that name and id fields. Note that use of the [DontSerialize] metatag requires -keep-as3-metadata+=“DontSerialize” to be marked in the compiler.</p>
+
+<pre><code>-static-link-runtime-shared-libraries=true
+-target-player={playerVersion}
+-library-path+="{flexSDK}/frameworks/locale/en_US"
+-default-size=550,400
+-use-network=false
+-keep-as3-metadata+=“DontSerialize”
+</code></pre>
+
+<p>Finally, the Argonaut serializer automatically tags JSON objects with a “__jsonclass__” tag so that a recipient may also know the datatype of any complex objects.</p>
+
+<h2>
+<a name="acknowledgements" class="anchor" href="#acknowledgements"><span class="octicon octicon-link"></span></a>ACKNOWLEDGEMENTS</h2>
+
+<p>I am indebted to Rocket Ninja, Inc. for their assistance in the development of this utility.</p>
       </section>
     </div>
 
